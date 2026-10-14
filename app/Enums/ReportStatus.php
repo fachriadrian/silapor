@@ -22,6 +22,20 @@ enum ReportStatus: string
     }
 
     /**
+     * Warna badge (nama warna Flux UI).
+     */
+    public function color(): string
+    {
+        return match ($this) {
+            self::New => 'sky',
+            self::InProgress => 'amber',
+            self::OnHold => 'zinc',
+            self::Completed => 'green',
+            self::Cancelled => 'red',
+        };
+    }
+
+    /**
      * Status akhir: laporan tidak lagi memerlukan tindakan.
      * Laporan berstatus ini disembunyikan dari dashboard admin (DSH-04).
      */

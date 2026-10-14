@@ -159,7 +159,7 @@ class Report extends Model
         return self::maskName($this->reporter_name);
     }
 
-    protected static function maskName(string $name): string
+    public static function maskName(string $name): string
     {
         $parts = preg_split('/\s+/', trim($name), -1, PREG_SPLIT_NO_EMPTY) ?: [];
 

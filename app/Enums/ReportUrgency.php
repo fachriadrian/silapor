@@ -18,6 +18,18 @@ enum ReportUrgency: string
     }
 
     /**
+     * Warna badge (nama warna Flux UI).
+     */
+    public function color(): string
+    {
+        return match ($this) {
+            self::Low => 'zinc',
+            self::Medium => 'amber',
+            self::High => 'red',
+        };
+    }
+
+    /**
      * Bobot untuk pengurutan (makin besar makin mendesak).
      */
     public function weight(): int

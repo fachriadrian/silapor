@@ -3,7 +3,11 @@
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome')->name('home');
+// Halaman publik (dapat dibuka tanpa login)
+Route::livewire('/', 'pages::home')->name('home');
+Route::livewire('lapor', 'pages::reports.create')->name('reports.create');
+Route::livewire('laporan', 'pages::reports.index')->name('reports.index');
+Route::livewire('laporan/{report:code}', 'pages::reports.show')->name('reports.show');
 
 Route::middleware('auth')->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');

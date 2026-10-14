@@ -12,6 +12,13 @@ use LogicException;
 /**
  * Log progres laporan. Bersifat append-only (LOG-04): entri hanya
  * boleh ditambah, tidak boleh diubah atau dihapus.
+ *
+ * @property ActorType $actor_type
+ * @property string $actor_name
+ * @property LogEvent $event_type
+ * @property ReportStatus|null $from_status
+ * @property ReportStatus|null $to_status
+ * @property string|null $note
  */
 class ReportLog extends Model
 {
@@ -55,6 +62,24 @@ class ReportLog extends Model
     public function report(): BelongsTo
     {
         return $this->belongsTo(Report::class);
+    }
+
+    /**
+     * Nama pelaku sesuai siapa yang melihat. Nama guest/user pelapor
+     * disamarkan bagi yang bukan admin atau pemilik laporan; nama staf IT
+     * dan sistem selalu tampil.
+     */
+    public function actorNameFor(?User $viewer, Report $report): string
+    {
+        if (in_array($this->actor_type, [ActorType::Admin, ActorType::System], true)) {
+            return $this->actor_name;
+        }
+
+        if ($viewer !== null && ($viewer->isAdmin() || $report->isReportedBy($viewer))) {
+            return $this->actor_name;
+        }
+
+        return Report::maskName($this->actor_name);
     }
 
     /**
