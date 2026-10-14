@@ -64,4 +64,36 @@ class ReportLog extends Model
     {
         return $this->belongsTo(User::class, 'actor_id');
     }
+
+    /**
+     * Mencatat satu entri log progres. Jika $actor null, pelakunya dianggap
+     * guest dan namanya diambil dari $guestName.
+     */
+    public static function record(
+        Report $report,
+        LogEvent $event,
+        ?User $actor,
+        ?string $note = null,
+        ?ReportStatus $from = null,
+        ?ReportStatus $to = null,
+        ?string $guestName = null,
+    ): self {
+        if ($actor === null) {
+            $actorType = ActorType::Guest;
+            $actorName = $guestName ?? 'Tamu';
+        } else {
+            $actorType = $actor->isAdmin() ? ActorType::Admin : ActorType::User;
+            $actorName = $actor->name;
+        }
+
+        return $report->logs()->create([
+            'actor_type' => $actorType,
+            'actor_id' => $actor?->getKey(),
+            'actor_name' => $actorName,
+            'event_type' => $event,
+            'from_status' => $from,
+            'to_status' => $to,
+            'note' => $note,
+        ]);
+    }
 }

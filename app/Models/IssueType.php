@@ -2,13 +2,18 @@
 
 namespace App\Models;
 
+use Database\Factories\IssueTypeFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class IssueType extends Model
 {
+    /** @use HasFactory<IssueTypeFactory> */
+    use HasFactory;
+
     protected $fillable = [
         'category_id',
         'name',
