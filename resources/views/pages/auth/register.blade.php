@@ -30,6 +30,17 @@
                 placeholder="email@example.com"
             />
 
+            <!-- Unit / Divisi -->
+            <flux:input
+                name="unit"
+                :label="__('Unit / Divisi')"
+                :value="old('unit')"
+                type="text"
+                required
+                autocomplete="organization"
+                :placeholder="__('Contoh: Keuangan')"
+            />
+
             <!-- Password -->
             <flux:input
                 name="password"

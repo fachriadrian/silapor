@@ -21,12 +21,16 @@ class CreateNewUser implements CreatesNewUsers
     {
         Validator::make($input, [
             ...$this->profileRules(),
+            'unit' => ['required', 'string', 'max:100'],
             'password' => $this->passwordRules(),
         ])->validate();
 
+        // 'role' dan 'is_active' sengaja tidak diisi dari input: user baru
+        // selalu berperan 'user' dan aktif (nilai default di database).
         return User::create([
             'name' => $input['name'],
             'email' => $input['email'],
+            'unit' => $input['unit'],
             'password' => $input['password'],
         ]);
     }
