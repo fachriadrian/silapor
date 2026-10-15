@@ -45,4 +45,17 @@ class ReportPolicy
     {
         return $user->isAdmin();
     }
+
+    public function changeUrgency(User $user, Report $report): bool
+    {
+        return $user->isAdmin();
+    }
+
+    /**
+     * Kontak pelapor (email/HP) hanya untuk Staf IT.
+     */
+    public function viewContact(User $user, Report $report): bool
+    {
+        return $user->isAdmin();
+    }
 }

@@ -1,4 +1,4 @@
-@props(['report', 'viewer' => null])
+@props(['report', 'viewer' => null, 'showUrgency' => false])
 
 <a
     href="{{ route('reports.show', $report->code) }}"
@@ -9,7 +9,7 @@
         <span class="font-mono text-sm font-semibold">{{ $report->display_code }}</span>
 
         <div class="flex flex-wrap items-center gap-2">
-            @if ($report->urgency === \App\Enums\ReportUrgency::High)
+            @if ($showUrgency || $report->urgency === \App\Enums\ReportUrgency::High)
                 <x-urgency-badge :urgency="$report->urgency" />
             @endif
             <x-report-status-badge :status="$report->status" />

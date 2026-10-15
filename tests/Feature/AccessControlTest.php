@@ -33,10 +33,10 @@ test('admins are redirected from the user dashboard to the admin dashboard', fun
         ->assertRedirect(route('admin.dashboard'));
 });
 
-test('regular users stay on the user dashboard', function () {
+test('regular users are sent from the dashboard to their own reports', function () {
     $this->actingAs(User::factory()->create())
         ->get(route('dashboard'))
-        ->assertOk();
+        ->assertRedirect(route('reports.mine'));
 });
 
 test('deactivated users are logged out on their next request', function () {

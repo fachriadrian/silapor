@@ -25,7 +25,11 @@
                     <flux:button :href="route('reports.create')" wire:navigate variant="primary" size="sm" icon="plus">Buat Laporan</flux:button>
 
                     @auth
-                        <flux:button :href="route('dashboard')" wire:navigate variant="ghost" size="sm">Dashboard</flux:button>
+                        <flux:button :href="route('reports.mine')" wire:navigate variant="ghost" size="sm">Laporan Saya</flux:button>
+                        @if (auth()->user()->isAdmin())
+                            <flux:button :href="route('admin.dashboard')" variant="ghost" size="sm">Admin</flux:button>
+                        @endif
+                        <flux:button :href="route('profile.edit')" variant="ghost" size="sm">Pengaturan</flux:button>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <flux:button type="submit" variant="ghost" size="sm">Keluar</flux:button>

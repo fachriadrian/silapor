@@ -1,9 +1,13 @@
-<x-layouts::app :title="__('Dashboard Admin')">
-    <div class="flex flex-col gap-4">
-        <flux:heading size="xl">{{ __('Dashboard Admin') }}</flux:heading>
+<x-layouts::public :title="__('Dashboard Admin')">
+    <div class="space-y-6">
+        <x-admin-nav active="dashboard" />
+
+        <flux:heading size="xl" level="1">{{ __('Dashboard Admin') }}</flux:heading>
 
         <flux:text>
-            {{ __('Halo, :name. Halaman ini masih sementara; dashboard laporan dibangun di Fase 3.', ['name' => auth()->user()->name]) }}
+            {{ __('Halo, :name. Ringkasan dan statistik laporan akan dibangun di Fase 3.', ['name' => auth()->user()->name]) }}
         </flux:text>
+
+        <flux:button :href="route('admin.reports.index')" variant="primary">Kelola Laporan</flux:button>
     </div>
-</x-layouts::app>
+</x-layouts::public>

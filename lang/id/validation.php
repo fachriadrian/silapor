@@ -51,6 +51,11 @@ return [
         'guestName' => 'nama',
         'guestContact' => 'kontak',
         'note' => 'keterangan',
+        'cancelReason' => 'alasan pembatalan',
+        'newStatus' => 'status',
+        'statusNote' => 'keterangan',
+        'progressNote' => 'keterangan progres',
+        'urgencyValue' => 'urgensi',
     ],
 
 ];

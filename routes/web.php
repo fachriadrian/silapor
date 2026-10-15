@@ -11,6 +11,7 @@ Route::livewire('laporan/{report:code}', 'pages::reports.show')->name('reports.s
 
 Route::middleware('auth')->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
+    Route::livewire('laporan-saya', 'pages::reports.mine')->name('reports.mine');
 });
 
 Route::middleware(['auth', 'role:admin'])
@@ -18,6 +19,7 @@ Route::middleware(['auth', 'role:admin'])
     ->name('admin.')
     ->group(function () {
         Route::view('/', 'admin.dashboard')->name('dashboard');
+        Route::livewire('laporan', 'pages::admin.reports.index')->name('reports.index');
     });
 
 require __DIR__.'/settings.php';
