@@ -11,6 +11,7 @@ use App\Models\ReportLog;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use RuntimeException;
 
 /**
  * Membuat laporan baru, baik dari user terdaftar maupun guest.
@@ -25,6 +26,10 @@ class CreateReport
 
         if ($reporter === null && ($guestName === '' || $guestContact === '')) {
             throw new InvalidArgumentException('Laporan dari tamu wajib menyertakan nama dan kontak.');
+        }
+
+        if (count($data->photos) > (int) config('silapor.photos.max_files', 3)) {
+            throw new InvalidArgumentException('Jumlah foto melebihi batas yang diizinkan.');
         }
 
         $category = Category::query()->active()->findOrFail($data->categoryId);
@@ -54,6 +59,8 @@ class CreateReport
             $report->code = app(GenerateReportCode::class)($category->id);
             $report->save();
 
+            $this->storePhotos($report, $data);
+
             ReportLog::record(
                 $report,
                 LogEvent::Created,
@@ -64,6 +71,27 @@ class CreateReport
 
             return $report;
         });
+    }
+
+    /**
+     * Menyimpan foto pendukung ke disk 'public' dan mencatatnya di tabel
+     * attachments. Nama file dibuat acak oleh Laravel, bukan dari nama asli.
+     */
+    private function storePhotos(Report $report, NewReportData $data): void
+    {
+        foreach ($data->photos as $photo) {
+            $path = $photo->store("reports/{$report->id}", 'public');
+
+            if ($path === false) {
+                throw new RuntimeException('Foto gagal disimpan.');
+            }
+
+            $report->attachments()->create([
+                'path' => $path,
+                'mime_type' => (string) $photo->getMimeType(),
+                'size_bytes' => (int) $photo->getSize(),
+            ]);
+        }
     }
 
     /**

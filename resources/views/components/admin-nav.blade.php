@@ -16,4 +16,28 @@
     >
         Kelola Laporan
     </flux:button>
+
+    <flux:button
+        :href="route('admin.statistics')"
+        size="sm"
+        :variant="$active === 'statistik' ? 'primary' : 'ghost'"
+    >
+        Statistik
+    </flux:button>
+
+    <flux:button
+        :href="route('admin.categories.index')"
+        size="sm"
+        :variant="$active === 'kategori' ? 'primary' : 'ghost'"
+    >
+        Kategori
+    </flux:button>
+
+    <flux:button
+        :href="route('admin.users.index')"
+        size="sm"
+        :variant="$active === 'pengguna' ? 'primary' : 'ghost'"
+    >
+        Pengguna
+    </flux:button>
 </nav>

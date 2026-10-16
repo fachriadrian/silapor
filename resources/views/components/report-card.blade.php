@@ -3,7 +3,10 @@
 <a
     href="{{ route('reports.show', $report->code) }}"
     wire:navigate
-    class="block rounded-xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-300 hover:shadow-sm dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-zinc-600"
+    @class([
+        'block rounded-xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-300 hover:shadow-sm dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-zinc-600',
+        'border-s-4 border-s-red-500' => $report->urgency === \App\Enums\ReportUrgency::High && ! $report->status->isFinal(),
+    ])
 >
     <div class="flex flex-wrap items-center justify-between gap-2">
         <span class="font-mono text-sm font-semibold">{{ $report->display_code }}</span>

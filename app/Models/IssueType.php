@@ -9,6 +9,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $category_id
+ * @property string $name
+ * @property bool $is_active
+ */
 class IssueType extends Model
 {
     /** @use HasFactory<IssueTypeFactory> */

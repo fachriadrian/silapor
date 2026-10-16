@@ -10,6 +10,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $prefix
+ * @property int $last_seq
+ * @property bool $is_active
+ */
 class Category extends Model
 {
     /** @use HasFactory<CategoryFactory> */

@@ -5,6 +5,7 @@ use App\Actions\Reports\NewReportData;
 use App\Enums\ReportUrgency;
 use App\Models\Category;
 use App\Models\IssueType;
+use App\Models\Report;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -13,8 +14,11 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 new #[Layout('layouts::public'), Title('Buat Laporan')] class extends Component {
+    use WithFileUploads;
+
     public string $categoryId = '';
 
     public string $issueTypeId = '';
@@ -30,6 +34,9 @@ new #[Layout('layouts::public'), Title('Buat Laporan')] class extends Component 
     public string $guestName = '';
 
     public string $guestContact = '';
+
+    /** @var array<int, mixed> */
+    public array $photos = [];
 
     // Honeypot: tidak terlihat oleh manusia, tetapi biasanya diisi oleh bot.
     public string $website = '';
@@ -54,10 +61,62 @@ new #[Layout('layouts::public'), Title('Buat Laporan')] class extends Component 
             ->get();
     }
 
+    /**
+     * Laporan aktif di kategori yang sama dengan lokasi yang mirip, untuk
+     * mencegah laporan ganda (RPT-08).
+     */
+    #[Computed]
+    public function similarReports(): Collection
+    {
+        $location = trim($this->location);
+
+        if ($this->categoryId === '' || mb_strlen($location) < 3) {
+            return new Collection;
+        }
+
+        $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $location).'%';
+
+        return Report::query()
+            ->active()
+            ->where('category_id', (int) $this->categoryId)
+            ->where('location', 'like', $like)
+            ->latestFirst()
+            ->limit(3)
+            ->get();
+    }
+
     public function updatedCategoryId(): void
     {
         // Jenis kendala bergantung pada kategori, jadi pilihan lama dibuang.
         $this->issueTypeId = '';
+    }
+
+    public function updatedPhotos(): void
+    {
+        // Beri umpan balik langsung saat foto dipilih.
+        $this->validate($this->photoRules());
+    }
+
+    public function removePhoto(int $index): void
+    {
+        unset($this->photos[$index]);
+
+        $this->photos = array_values($this->photos);
+        $this->resetErrorBag();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function photoRules(): array
+    {
+        $maxFiles = max(1, (int) config('silapor.photos.max_files', 3));
+        $maxKb = max(1, (int) config('silapor.photos.max_size_kb', 2048));
+
+        return [
+            'photos' => ['array', 'max:'.$maxFiles],
+            'photos.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:'.$maxKb],
+        ];
     }
 
     /**
@@ -81,6 +140,7 @@ new #[Layout('layouts::public'), Title('Buat Laporan')] class extends Component 
             'urgency' => ['required', Rule::enum(ReportUrgency::class)],
             'guestName' => [Rule::requiredIf($isGuest), 'nullable', 'string', 'max:100'],
             'guestContact' => [Rule::requiredIf($isGuest), 'nullable', 'string', 'max:100'],
+            ...$this->photoRules(),
         ];
     }
 
@@ -117,6 +177,7 @@ new #[Layout('layouts::public'), Title('Buat Laporan')] class extends Component 
                 urgency: ReportUrgency::from($this->urgency),
                 guestName: $this->guestName,
                 guestContact: $this->guestContact,
+                photos: array_values($this->photos),
             ),
             $user,
         );
@@ -174,10 +235,32 @@ new #[Layout('layouts::public'), Title('Buat Laporan')] class extends Component 
         @endif
 
         <flux:input
-            wire:model="location"
+            wire:model.live.debounce.500ms="location"
             label="Lokasi"
             placeholder="Contoh: Ruang Rapat Lt. 2"
         />
+
+        @if ($this->similarReports->isNotEmpty())
+            <div class="space-y-2 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
+                <p class="font-medium">Sudah ada laporan aktif serupa di lokasi ini</p>
+                <p>
+                    Jika masalahnya sama, Anda tidak perlu membuat laporan baru. Pantau progresnya di laporan yang sudah ada.
+                    Jika berbeda, silakan lanjutkan mengisi form.
+                </p>
+
+                <ul class="space-y-1">
+                    @foreach ($this->similarReports as $similar)
+                        <li wire:key="similar-{{ $similar->id }}">
+                            <a href="{{ route('reports.show', $similar->code) }}" target="_blank" rel="noopener" class="underline">
+                                <span class="font-mono font-semibold">{{ $similar->display_code }}</span>
+                                {{ $similar->title }}
+                            </a>
+                            <span class="text-xs">({{ $similar->status->label() }})</span>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
         <flux:input
             wire:model="reportTitle"
@@ -197,6 +280,65 @@ new #[Layout('layouts::public'), Title('Buat Laporan')] class extends Component 
                 <flux:select.option value="{{ $level->value }}">{{ $level->label() }}</flux:select.option>
             @endforeach
         </flux:select>
+
+        <div class="space-y-2">
+            <label for="photos" class="text-sm font-medium">Foto pendukung (opsional)</label>
+
+            <input
+                id="photos"
+                type="file"
+                wire:model="photos"
+                multiple
+                accept="image/jpeg,image/png,image/webp"
+                class="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium hover:file:bg-zinc-200 dark:file:bg-zinc-700 dark:hover:file:bg-zinc-600"
+            >
+
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                Maksimal {{ config('silapor.photos.max_files') }} foto, masing-masing paling besar
+                {{ (int) (config('silapor.photos.max_size_kb') / 1024) }} MB (JPG, PNG, atau WebP).
+            </p>
+
+            <p wire:loading wire:target="photos" class="text-sm text-zinc-500 dark:text-zinc-400">Mengunggah foto…</p>
+
+            @error('photos')
+                <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+            @enderror
+
+            @foreach ($errors->get('photos.*') as $messages)
+                @foreach ($messages as $message)
+                    <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @endforeach
+            @endforeach
+
+            @if (count($photos) > 0)
+                <div class="flex flex-wrap gap-3 pt-1">
+                    @foreach ($photos as $index => $photo)
+                        <div wire:key="photo-{{ $index }}" class="relative">
+                            @if (method_exists($photo, 'isPreviewable') && $photo->isPreviewable())
+                                <img
+                                    src="{{ $photo->temporaryUrl() }}"
+                                    alt="Pratinjau foto {{ $index + 1 }}"
+                                    class="size-24 rounded-lg border border-zinc-200 object-cover dark:border-zinc-700"
+                                >
+                            @else
+                                <div class="flex size-24 items-center justify-center rounded-lg border border-zinc-200 text-xs dark:border-zinc-700">
+                                    Foto {{ $index + 1 }}
+                                </div>
+                            @endif
+
+                            <button
+                                type="button"
+                                wire:click="removePhoto({{ $index }})"
+                                class="absolute -right-2 -top-2 flex size-6 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white"
+                                aria-label="Hapus foto {{ $index + 1 }}"
+                            >
+                                ×
+                            </button>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
 
         @guest
             <div class="grid gap-5 sm:grid-cols-2">

@@ -39,7 +39,7 @@ new #[Layout('layouts::public'), Title('Detail Laporan')] class extends Componen
 
     public function mount(Report $report): void
     {
-        $this->report = $report->load(['category', 'issueType', 'reporter', 'logs']);
+        $this->report = $report->load(['category', 'issueType', 'reporter', 'logs', 'attachments']);
         $this->urgencyValue = $report->urgency->value;
 
         // Banner "laporan terkirim" hanya muncul sekali, tepat setelah laporan dibuat.
@@ -153,7 +153,7 @@ new #[Layout('layouts::public'), Title('Detail Laporan')] class extends Componen
 
     protected function reloadReport(): void
     {
-        $this->report->refresh()->load(['category', 'issueType', 'reporter', 'logs']);
+        $this->report->refresh()->load(['category', 'issueType', 'reporter', 'logs', 'attachments']);
         $this->urgencyValue = $this->report->urgency->value;
     }
 };
@@ -256,6 +256,25 @@ new #[Layout('layouts::public'), Title('Detail Laporan')] class extends Componen
             <p class="text-sm text-zinc-500 dark:text-zinc-400">Deskripsi</p>
             <p class="mt-1 whitespace-pre-line">{{ $report->description }}</p>
         </div>
+
+        @if ($report->attachments->isNotEmpty())
+            <div>
+                <p class="text-sm text-zinc-500 dark:text-zinc-400">Foto lampiran</p>
+
+                <div class="mt-2 flex flex-wrap gap-3">
+                    @foreach ($report->attachments as $attachment)
+                        <a href="{{ $attachment->url }}" target="_blank" rel="noopener" wire:key="photo-{{ $attachment->id }}">
+                            <img
+                                src="{{ $attachment->url }}"
+                                alt="Foto lampiran {{ $loop->iteration }} untuk laporan {{ $report->display_code }}"
+                                loading="lazy"
+                                class="size-28 rounded-lg border border-zinc-200 object-cover dark:border-zinc-700"
+                            >
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
 
         @can('cancel', $report)
             <div class="border-t border-zinc-200 pt-4 dark:border-zinc-700">

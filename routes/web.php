@@ -18,8 +18,12 @@ Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::view('/', 'admin.dashboard')->name('dashboard');
+        Route::livewire('/', 'pages::admin.dashboard')->name('dashboard');
         Route::livewire('laporan', 'pages::admin.reports.index')->name('reports.index');
+        Route::livewire('statistik', 'pages::admin.statistics')->name('statistics');
+        Route::livewire('kategori', 'pages::admin.categories.index')->name('categories.index');
+        Route::livewire('kategori/{category}', 'pages::admin.categories.show')->name('categories.show');
+        Route::livewire('pengguna', 'pages::admin.users')->name('users.index');
     });
 
 require __DIR__.'/settings.php';
